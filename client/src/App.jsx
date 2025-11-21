@@ -1,9 +1,12 @@
 import { useState } from "react";
 import "./App.css";
 import { serverUrl } from "./main.jsx";
+import { use } from "react";
+import { useEffect } from "react";
 
 function App() {
   const [termine, setTermine] = useState(false);
+  const [games, setGames] = useState([]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -32,10 +35,10 @@ function App() {
     gameData.push({ plateforme: plateformes });
     gameData.push({ termine: termine });
     const objectData = Object.assign({}, ...gameData);
-    postData(objectData);
+    postGame(objectData);
   };
 
-  const postData = async (gameData) => {
+  const postGame = async (gameData) => {
     fetch(serverUrl + "api/games", {
       method: "POST",
       headers: {
@@ -47,6 +50,7 @@ function App() {
         if (res.status == 500) throw new Error();
         else if (res.status == 200) {
           alert("Jeu ajouté avec succès !");
+          getGames();
           return res.json();
         }
       })
@@ -54,6 +58,32 @@ function App() {
         setErrorMessage("Error while connecting. Please try later");
       });
   };
+
+  const getGames = async () => {
+    fetch(serverUrl + "api/games", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (res.status == 500) throw new Error();
+        else if (res.status == 200) {
+          return res.json();
+        }
+      })
+      .then((data) => {
+        setGames(data.message);
+        getGames();
+      })
+      .catch(() => {
+        setErrorMessage("Error while connecting. Please try later");
+      });
+  };
+
+  useEffect(() => {
+    getGames();
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -127,6 +157,25 @@ function App() {
 
           <button type="submit">Ajouter le jeu</button>
         </form>
+      </div>
+
+      <div>
+        <h3>Liste des Jeux</h3>
+        <ul>
+          {games.map((game, index) => (
+            <li key={index}>
+              <h4>{game.titre}</h4>
+              <p>Genres: {game.genre.join(", ")}</p>
+              <p>Plateformes: {game.plateforme.join(", ")}</p>
+              <p>Éditeur: {game.editeur}</p>
+              <p>Développeur: {game.developpeur}</p>
+              <p>Année de sortie: {game.annee_sortie}</p>
+              <p>Score Metacritic: {game.metacritic_score}</p>
+              <p>Temps de jeu (heures): {game.temps_jeu_heures}</p>
+              <p>Terminé: {game.termine ? "Oui" : "Non"}</p>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
