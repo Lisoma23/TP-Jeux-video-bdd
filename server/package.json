@@ -1,0 +1,16 @@
+{
+  "name": "TP_BDD_jeux_videos_server",
+  "version": "1.0.0",
+  "description": "Server du projet jeux vidéos de BDD",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Sofia Hazami",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "mongoose": "^8.20.1"
+  }
+}
