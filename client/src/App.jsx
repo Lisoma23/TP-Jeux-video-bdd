@@ -7,6 +7,7 @@ export default function App() {
   const [termine, setTermine] = useState(false);
   const [games, setGames] = useState([]);
   const [idGameToUpdate, setIdGameToUpdate] = useState(null);
+  const [idGameToDelete, setIdGameToDelete] = useState(null);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -138,6 +139,25 @@ export default function App() {
     // });
   };
 
+  const deleteGame = async (id) => {
+    fetch(serverUrl + "api/games/" + id, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then((res) => {
+      if (res.status == 500) throw new Error();
+      else if (res.status == 200) {
+        alert("Jeu supprimé avec succès !");
+        getGames();
+        return res.json();
+      }
+    });
+    // .catch(() => {
+    //   setErrorMessage("Error while connecting. Please try later");
+    // });
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <h1 className="">Bibliothèque de gestion de jeux videos</h1>
@@ -231,6 +251,9 @@ export default function App() {
                 <p>Terminé: {game.termine ? "Oui" : "Non"}</p>
                 <button onClick={() => setIdGameToUpdate(game._id)}>
                   Modifier le jeu
+                </button>
+                <button onClick={() => deleteGame(game._id)}>
+                  Supprimer le jeu
                 </button>
               </li>
             ) : (
