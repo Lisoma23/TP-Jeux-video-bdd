@@ -3,14 +3,17 @@ import mongoose from "mongoose";
 const GameSchema = new mongoose.Schema({
   titre: {
     type: String,
+    minLength: 1,
     required: [true, "Veuillez fournir un titre"],
   },
   genre: {
     type: [String],
+    minItems: 1,
     required: [true, "Veuillez fournir au moins un genre"],
   },
   plateforme: {
     type: [String],
+    minItems: 1,
     required: [true, "Veuillez fournir au moins une plateforme"],
   },
   editeur: {
@@ -23,14 +26,19 @@ const GameSchema = new mongoose.Schema({
   },
   annee_sortie: {
     type: Number,
+    min: 1970,
+    max: new Date().getFullYear(),
     required: [false],
   },
   metacritic_score: {
     type: Number,
+    min: 0,
+    max: 100,
     required: [false],
   },
   temps_jeu_heures: {
     type: Number,
+    min: 0,
     required: [false],
   },
   termine: {

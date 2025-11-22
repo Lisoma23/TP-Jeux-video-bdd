@@ -7,8 +7,9 @@ export default function App() {
   const [termine, setTermine] = useState(false);
   const [games, setGames] = useState([]);
   const [idGameToUpdate, setIdGameToUpdate] = useState(null);
-  const [idGameToDelete, setIdGameToDelete] = useState(null);
-
+  const [idGameOpened, setIdGameOpened] = useState(null);
+  const [currentGame, setCurrentGame] = useState(null);
+  
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
@@ -107,7 +108,6 @@ export default function App() {
       })
       .then((data) => {
         setGames(data.message);
-        getGames();
       });
     // .catch(() => {
     //   setErrorMessage("Error while connecting. Please try later");
@@ -153,6 +153,29 @@ export default function App() {
         return res.json();
       }
     });
+    // .catch(() => {
+    //   setErrorMessage("Error while connecting. Please try later");
+    // });
+  };
+
+  const getGame = async (id) => {
+    setIdGameOpened(id);
+    fetch(serverUrl + "api/games/" + id, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (res.status == 500) throw new Error();
+        else if (res.status == 200) {
+          return res.json();
+        }
+      })
+      .then((data) => {
+        setCurrentGame(data.message);
+        return data.message;
+      });
     // .catch(() => {
     //   setErrorMessage("Error while connecting. Please try later");
     // });
@@ -238,17 +261,28 @@ export default function App() {
           {games.map((game, index) =>
             idGameToUpdate != game._id ? (
               <li key={index}>
+                <button onClick={() => getGame(game._id)}>Ouvrir</button>
                 <h4>{game.titre}</h4>
                 <p>Genres: {game.genre.join(", ")}</p>
                 <p>Plateformes: {game.plateforme.join(", ")}</p>
-                <p>Éditeur: {game.editeur}</p>
-                <p>Développeur: {game.developpeur}</p>
-                <p>Année de sortie: {game.annee_sortie}</p>
-                <p>Score Metacritic: {game.metacritic_score}</p>
-                <p>Temps de jeu (heures): {game.temps_jeu_heures}</p>
-                <p>Date de création: {game.date_ajout}</p>
-                <p>Dernière modification: {game.date_modification}</p>
                 <p>Terminé: {game.termine ? "Oui" : "Non"}</p>
+
+                {idGameOpened === game._id && currentGame && (
+                  <>
+                    <p>Éditeur: {currentGame.editeur}</p>
+                    <p>Développeur: {currentGame.developpeur}</p>
+                    <p>Année de sortie: {currentGame.annee_sortie}</p>
+                    <p>Score Metacritic: {currentGame.metacritic_score}</p>
+                    <p>Temps de jeu (heures): {currentGame.temps_jeu_heures}</p>
+                    <p>Date de création: {currentGame.date_ajout}</p>
+                    <p>
+                      Dernière modification: {currentGame.date_modification}
+                    </p>
+                    <button onClick={() => setIdGameOpened(null)}>
+                      Fermer
+                    </button>
+                  </>
+                )}
                 <button onClick={() => setIdGameToUpdate(game._id)}>
                   Modifier le jeu
                 </button>

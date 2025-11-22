@@ -2,7 +2,7 @@ import Game from "../models/Game.js";
 
 export async function getGames(req, res) {
   try {
-    const gameContacts = await Game.find();
+    const gameContacts = await Game.find({}, 'titre genre plateforme termine');
     res.status(200).json({ message: gameContacts });
   } catch (err) {
     console.log(err);
