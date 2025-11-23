@@ -104,7 +104,7 @@ export default function Form({
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="mt-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 mx-2">
         <input
           className={styleInput}
           type="text"
@@ -194,7 +194,7 @@ export default function Form({
           placeholder="Temps de jeu (h)"
         />
       </div>
-      <div className="flex items-center gap-3 p-3 bg-purple-100 rounded-lg mx-2 mt-3">
+      <div className="flex items-center gap-3 p-3 rounded-lg mt-3">
         <input
           type="checkbox"
           name="termine"
@@ -220,10 +220,10 @@ export default function Form({
         </div>
       )}
 
-      <div className="flex gap-3 pt-2 mt-4 mx-2">
+      <div className="flex pt-2 mt-4 mx-2">
         <button
           type="submit"
-          className="flex-1 text-white font-medium py-2.5 px-4 rounded-lg transition-colors cursor-pointer"
+          className="text-white font-medium py-2.5 px-4 rounded-lg transition-colors cursor-pointer"
           style={{
             backgroundColor: isHovered ? "#7c0dd4" : "#9810fa",
           }}
@@ -243,7 +243,7 @@ export default function Form({
               setErrorMessage("");
             }
           }}
-          className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition-colors mx-2 cursor-pointer"
+          className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition-colors mx-2 cursor-pointer"
         >
           Annuler
         </button>
