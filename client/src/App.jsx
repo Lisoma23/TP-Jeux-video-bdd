@@ -2,6 +2,14 @@ import { useState } from "react";
 import "./App.css";
 import { serverUrl } from "./main.jsx";
 import { useEffect } from "react";
+import Form from "../components/Form.jsx";
+import {
+  RiAddLine,
+  RiArrowRightSLine,
+  RiPencilLine,
+  RiDeleteBinLine,
+} from "@remixicon/react";
+import Paragraph from "../components/Paragraph.jsx";
 
 export default function App() {
   const [termine, setTermine] = useState(false);
@@ -9,69 +17,17 @@ export default function App() {
   const [idGameToUpdate, setIdGameToUpdate] = useState(null);
   const [idGameOpened, setIdGameOpened] = useState(null);
   const [currentGame, setCurrentGame] = useState(null);
-  
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData.entries());
-    const genres = [];
-    const plateformes = [];
-    const gameData = [];
+  const [addGame, setAddGame] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-    for (let i = 1; i <= 3; i++) {
-      if (data[`genre${i}`]) {
-        genres.push(data[`genre${i}`]);
-        delete data[`genre${i}`];
-      }
-      if (data[`plateforme${i}`]) {
-        plateformes.push(data[`plateforme${i}`]);
-        delete data[`plateforme${i}`];
-      }
-    }
+  const styleInput =
+    "border border-purple-300 focus:border-purple-500 rounded px-4 py-2 outline-none bg-white mt-3";
 
-    Object.entries(data).forEach(([key, value]) => {
-      gameData.push({ [key]: value });
-    });
+  const styleInputModify =
+    "border-b-2 border-purple-300 focus:border-purple-600 focus:bg-purple-50/20 px-3 py-2.5 outline-none bg-transparent transition-all duration-200";
 
-    gameData.push({ genre: genres });
-    gameData.push({ plateforme: plateformes });
-    gameData.push({ termine: termine });
-    const objectData = Object.assign({}, ...gameData);
-
-    if (idGameToUpdate) {
-      const game = games.find((g) => g._id === idGameToUpdate);
-
-      const fieldsToNormalize = [
-        "annee_sortie",
-        "metacritic_score",
-        "temps_jeu_heures",
-      ];
-
-      Object.entries(objectData).forEach(([key, value]) => {
-        let normalizedValue = value;
-
-        // Pour les champs qui sont des NUMBER dans la base de données
-        if (fieldsToNormalize.includes(key)) {
-          if (value === "") {
-            normalizedValue = null;
-          } else if (typeof value === "string" && value !== "") {
-            normalizedValue = Number(value); // Ex: Convertit "20" en 20
-          }
-        }
-
-        const gameValue = game[key];
-
-        // Vérifie si les valeurs sont identiques entre game et objectData et supprime la clé si c'est le cas
-        if (JSON.stringify(normalizedValue) === JSON.stringify(gameValue)) {
-          delete objectData[key];
-        }
-      });
-
-      putGame(objectData);
-    } else {
-      postGame(objectData);
-    }
-  };
+  const styleParagraph = "text-purple-800 mb-1";
+  const styleSpan = "font-semibold text-purple-700";
 
   const postGame = async (gameData) => {
     fetch(serverUrl + "api/games", {
@@ -80,17 +36,20 @@ export default function App() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(gameData),
-    }).then((res) => {
-      if (res.status == 500) throw new Error();
-      else if (res.status == 200) {
-        alert("Jeu ajouté avec succès !");
-        getGames();
-        return res.json();
-      }
-    });
-    // .catch(() => {
-    //   setErrorMessage("Error while connecting. Please try later");
-    // });
+    })
+      .then((res) => {
+        if (res.status == 500) throw new Error();
+        else if (res.status == 201) {
+          console.log("Jeu ajouté avec succès !");
+          getGames();
+          setAddGame(false);
+          setTermine(false);
+          return res.json();
+        }
+      })
+      .catch(() => {
+        setErrorMessage("Error while connecting. Please try later");
+      });
   };
 
   const getGames = async () => {
@@ -128,7 +87,7 @@ export default function App() {
     }).then((res) => {
       if (res.status == 500) throw new Error();
       else if (res.status == 200) {
-        alert("Jeu modifié avec succès !");
+        console.log("Jeu modifié avec succès !");
         getGames();
         setIdGameToUpdate(null);
         return res.json();
@@ -148,7 +107,7 @@ export default function App() {
     }).then((res) => {
       if (res.status == 500) throw new Error();
       else if (res.status == 200) {
-        alert("Jeu supprimé avec succès !");
+        console.log("Jeu supprimé avec succès !");
         getGames();
         return res.json();
       }
@@ -181,214 +140,215 @@ export default function App() {
     // });
   };
 
-  return (
-    <div className="flex flex-col min-h-screen">
-      <h1 className="">Bibliothèque de gestion de jeux videos</h1>
+  const openCloseGameDetails = (id) => {
+    if (idGameOpened === id) {
+      setIdGameOpened(null);
+      setCurrentGame(null);
+    } else {
+      getGame(id);
+    }
+  };
 
-      <div>
-        <p>Bienvenue dans votre bibliothèque de gestion de jeux vidéo !</p>
-        <p>
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+
+    if (addGame && !isMobile) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [addGame]);
+
+  return (
+    <div className="flex flex-col min-h-screen p-6 rounded-lg bg-pink-50">
+      <h1 className="text-4xl font-bold text-purple-800 text-center mt-2 mb-6">
+        Bibliothèque de gestion de jeux videos
+      </h1>
+
+      <div className="bg-purple-50 border border-purple-300 rounded-lg p-4 mt-10 mb-6">
+        <p className="text-purple-800 mb-2">
+          Bienvenue dans votre bibliothèque de gestion de jeux vidéo !
+        </p>
+        <p className="text-purple-800 mb-2">
           Ici, vous pouvez organiser, suivre et découvrir vos jeux vidéo
           préférés.
         </p>
-        <p>
+        <p className="text-purple-800 mb-2">
           Commencez par ajouter vos jeux à la bibliothèque et profitez de
-          fonctionnalités telles que les listes de souhaits, les critiques et
-          bien plus encore.
+          fonctionnalités telles que les favoris, le score et le filtrage.
         </p>
       </div>
 
-      <div>
-        <h3>Ajouter un Jeu</h3>
-        <form onSubmit={handleSubmit}>
-          <input type="text" name="titre" placeholder="Titre du jeu" required />
-          <input
-            type="text"
-            name="genre1"
-            placeholder="Genre du jeu"
-            required
-          />
-          <input type="text" name="genre2" placeholder="Genre du jeu" />
-          <input type="text" name="genre3" placeholder="Genre du jeu" />
-          <input
-            type="text"
-            name="plateforme1"
-            placeholder="Plateforme"
-            required
-          />
-          <input type="text" name="plateforme2" placeholder="Plateforme" />
-          <input type="text" name="plateforme3" placeholder="Plateforme" />
-          <input type="text" name="editeur" placeholder="Editeur du jeu" />
-          <input
-            type="text"
-            name="developpeur"
-            placeholder="Developpeur du jeu"
-          />
-          <input
-            type="number"
-            name="annee_sortie"
-            placeholder="Année de sortie"
-            min="1950"
-            max="2025"
-          />
-          <input
-            type="number"
-            name="metacritic_score"
-            placeholder="Score Metacritic"
-            min="0"
-            max="100"
-          />
-          <input
-            type="number"
-            name="temps_jeu_heures"
-            placeholder="Temps de Jeu en heures"
-          />
-          <p>Terminé</p>
-          <input
-            type="checkbox"
-            name="termine"
-            checked={termine}
-            onChange={(e) => setTermine(e.target.checked)}
-          />
-
-          <button type="submit">Ajouter le jeu</button>
-        </form>
+      <div
+        className={`fixed inset-0 bg-pink-100/75 flex items-center justify-center z-99 ${
+          addGame ? "" : "hidden"
+        }`}
+      >
+        <div className="w-[90%] md:w-[70%] bg-purple-50 border border-purple-300 rounded-lg p-4">
+          <h3 className="text-purple-700 text-lg">Ajouter un Jeu</h3>
+          <Form
+            styleInput={styleInput}
+            termine={termine}
+            setTermine={setTermine}
+            post={postGame}
+            setAddGame={setAddGame}
+            errorMessage={errorMessage}
+            setErrorMessage={setErrorMessage}
+          ></Form>
+        </div>
       </div>
 
       <div>
-        <h3>Liste des Jeux</h3>
-        <ul>
+        <div className="flex w-full justify-between">
+          <h3 className="text-2xl font-bold text-purple-500 mb-6">
+            Liste des Jeux
+          </h3>
+          <RiAddLine
+            className="text-purple-600 w-8 h-8 mb-4 cursor-pointer"
+            onClick={() => setAddGame(!addGame)}
+          />
+        </div>
+
+        <ul className="grid grid-cols-2 gap-6">
           {games.map((game, index) =>
             idGameToUpdate != game._id ? (
-              <li key={index}>
-                <button onClick={() => getGame(game._id)}>Ouvrir</button>
-                <h4>{game.titre}</h4>
-                <p>Genres: {game.genre.join(", ")}</p>
-                <p>Plateformes: {game.plateforme.join(", ")}</p>
-                <p>Terminé: {game.termine ? "Oui" : "Non"}</p>
+              <li
+                key={index}
+                className="bg-purple-50 border-2 border-pink-300 rounded-lg p-5 mb-4 shadow-md relative self-start"
+              >
+                {idGameOpened === game._id ? (
+                  <RiArrowRightSLine
+                    className="absolute right-4 rotate-90"
+                    onClick={() => openCloseGameDetails(game._id)}
+                  />
+                ) : (
+                  <RiArrowRightSLine
+                    className="absolute right-4"
+                    onClick={() => openCloseGameDetails(game._id)}
+                  />
+                )}
+                <h4 className="text-xl font-bold text-pink-600 mb-2 w-[90%]">
+                  {game.titre}
+                </h4>
+                <Paragraph
+                  categorie={"Genre(s)"}
+                  text={game.genre.join(", ")}
+                  styleParagraph={styleParagraph}
+                  styleSpan={styleSpan}
+                />
+                <Paragraph
+                  categorie={"Plateforme(s)"}
+                  text={game.plateforme.join(", ")}
+                  styleParagraph={styleParagraph}
+                  styleSpan={styleSpan}
+                />
+                <Paragraph
+                  categorie={"Terminé"}
+                  text={game.termine ? "Oui" : "Non"}
+                  styleParagraph={styleParagraph}
+                  styleSpan={styleSpan}
+                />
 
                 {idGameOpened === game._id && currentGame && (
                   <>
-                    <p>Éditeur: {currentGame.editeur}</p>
-                    <p>Développeur: {currentGame.developpeur}</p>
-                    <p>Année de sortie: {currentGame.annee_sortie}</p>
-                    <p>Score Metacritic: {currentGame.metacritic_score}</p>
-                    <p>Temps de jeu (heures): {currentGame.temps_jeu_heures}</p>
-                    <p>Date de création: {currentGame.date_ajout}</p>
-                    <p>
-                      Dernière modification: {currentGame.date_modification}
-                    </p>
-                    <button onClick={() => setIdGameOpened(null)}>
-                      Fermer
-                    </button>
+                    <Paragraph
+                      categorie={"Éditeur"}
+                      text={currentGame.editeur || "N/A"}
+                      styleParagraph={styleParagraph}
+                      styleSpan={styleSpan}
+                    />
+                    <Paragraph
+                      categorie={"Développeur"}
+                      text={currentGame.developpeur || "N/A"}
+                      styleParagraph={styleParagraph}
+                      styleSpan={styleSpan}
+                    />
+                    <Paragraph
+                      categorie={"Année de sortie"}
+                      text={currentGame.annee_sortie || "N/A"}
+                      styleParagraph={styleParagraph}
+                      styleSpan={styleSpan}
+                    />
+                    <Paragraph
+                      categorie={"Score Metacritic"}
+                      text={
+                        currentGame.metacritic_score !== null
+                          ? currentGame.metacritic_score
+                          : "N/A"
+                      }
+                      styleParagraph={styleParagraph}
+                      styleSpan={styleSpan}
+                    />
+                    <Paragraph
+                      categorie={"Temps de jeu (heures)"}
+                      text={
+                        currentGame.temps_jeu_heures !== null
+                          ? currentGame.temps_jeu_heures
+                          : "N/A"
+                      }
+                      styleParagraph={styleParagraph}
+                      styleSpan={styleSpan}
+                    />
+                    <Paragraph
+                      categorie={"Date de création"}
+                      text={new Date(currentGame.date_ajout).toLocaleString(
+                        "fr-FR"
+                      )}
+                      styleParagraph={styleParagraph}
+                      styleSpan={styleSpan}
+                    />
+                    <Paragraph
+                      categorie={"Dernière modification"}
+                      text={new Date(
+                        currentGame.date_modification
+                      ).toLocaleString("fr-FR")}
+                      styleParagraph={styleParagraph}
+                      styleSpan={styleSpan}
+                    />
                   </>
                 )}
-                <button onClick={() => setIdGameToUpdate(game._id)}>
-                  Modifier le jeu
-                </button>
-                <button onClick={() => deleteGame(game._id)}>
-                  Supprimer le jeu
-                </button>
+                <div className="flex gap-3 mt-4">
+                  <button
+                    className="group relative bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg transition-all hover:scale-110 cursor-pointer"
+                    onClick={() => setIdGameToUpdate(game._id)}
+                  >
+                    <RiPencilLine size={15} />
+                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Modifier
+                    </span>
+                  </button>
+                  <button
+                    className="group relative bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-lg transition-all hover:scale-110 cursor-pointer"
+                    onClick={() => deleteGame(game._id)}
+                  >
+                    <RiDeleteBinLine size={15} />
+                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Supprimer
+                    </span>
+                  </button>
+                </div>
               </li>
             ) : (
               game._id === idGameToUpdate && (
-                <form onSubmit={handleSubmit} key={index}>
-                  <input
-                    type="text"
-                    name="titre"
-                    defaultValue={game.titre}
-                    placeholder="Titre du jeu"
-                    required
+                <div className="bg-purple-50 border-2 border-pink-300 rounded-lg px-2 pb-6 mb-4 shadow-md relative self-start">
+                  <Form
+                    key={index}
+                    styleInput={styleInputModify}
+                    termine={termine}
+                    setTermine={setTermine}
+                    post={postGame}
+                    setAddGame={setAddGame}
+                    game={game}
+                    idGameToUpdate={idGameToUpdate}
+                    setIdGameToUpdate={setIdGameToUpdate}
+                    put={putGame}
+                    games={games}
                   />
-                  <input
-                    type="text"
-                    name="genre1"
-                    defaultValue={game.genre[0]}
-                    placeholder="Genre du jeu"
-                    required
-                  />
-                  <input
-                    type="text"
-                    name="genre2"
-                    defaultValue={game.genre[1]}
-                    placeholder="Genre du jeu"
-                  />
-                  <input
-                    type="text"
-                    name="genre3"
-                    defaultValue={game.genre[2]}
-                    placeholder="Genre du jeu"
-                  />
-                  <input
-                    type="text"
-                    name="plateforme1"
-                    defaultValue={game.plateforme[0]}
-                    placeholder="Plateforme"
-                    required
-                  />
-                  <input
-                    type="text"
-                    name="plateforme2"
-                    defaultValue={game.plateforme[1]}
-                    placeholder="Plateforme"
-                  />
-                  <input
-                    type="text"
-                    name="plateforme3"
-                    defaultValue={game.plateforme[2]}
-                    placeholder="Plateforme"
-                  />
-                  <input
-                    type="text"
-                    name="editeur"
-                    defaultValue={game.editeur}
-                    placeholder="Editeur du jeu"
-                  />
-                  <input
-                    type="text"
-                    name="developpeur"
-                    defaultValue={game.developpeur}
-                    placeholder="Developpeur du jeu"
-                  />
-                  <input
-                    type="number"
-                    name="annee_sortie"
-                    defaultValue={game.annee_sortie}
-                    placeholder="Année de sortie"
-                    min="1950"
-                    max="2025"
-                  />
-                  <input
-                    type="number"
-                    name="metacritic_score"
-                    defaultValue={game.metacritic_score}
-                    placeholder="Score Metacritic"
-                    min="0"
-                    max="100"
-                  />
-                  <input
-                    type="number"
-                    name="temps_jeu_heures"
-                    defaultValue={game.temps_jeu_heures}
-                    placeholder="Temps de Jeu en heures"
-                  />
-                  <p>Terminé</p>
-                  <input
-                    type="checkbox"
-                    name="termine"
-                    checked={game.termine}
-                    onChange={(e) => setTermine(e.target.checked)}
-                  />
-
-                  <button type="submit">Modifier le jeu</button>
-                  <button
-                    onClick={() => {
-                      setIdGameToUpdate(null);
-                    }}
-                  >
-                    Annuler
-                  </button>
-                </form>
+                </div>
               )
             )
           )}

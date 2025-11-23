@@ -13,8 +13,8 @@ export async function addGame(req, res) {
       plateforme,
       termine,
     } = req.body;
-    const date_ajout = new Date();
-    const date_modification = new Date();
+    const date_ajout = new Date().toISOString();
+    const date_modification = new Date().toISOString();
 
     // Check for existing game with the same title
     try {
