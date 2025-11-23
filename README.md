@@ -8,14 +8,14 @@ L’application utilise **Node.js, Express, MongoDB et Mongoose** pour le backen
 ---
 
 ### Page d'accueil
-<img width="1920" height="1791" alt="image" src="https://github.com/user-attachments/assets/a976c7d4-f085-41c3-a083-805015f06146" />
-<img width="1920" height="1086" alt="image" src="https://github.com/user-attachments/assets/cbe29ed1-0965-4488-b2e1-939e6d883257" />
-<img width="1920" height="1504" alt="image" src="https://github.com/user-attachments/assets/ad22e761-eb7b-4f52-aa84-c3a4791cd534" />
-<img width="1920" height="1510" alt="image" src="https://github.com/user-attachments/assets/62b0b91b-de7b-4601-9183-0a034c87bf54" />
+<img width="1920" height="1785" alt="image" src="https://github.com/user-attachments/assets/763106a9-398e-448e-8b7f-f760182f00e2" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b14740bc-6ccb-4897-9a23-100bd2205c7a" />
+<img width="1920" height="1498" alt="image" src="https://github.com/user-attachments/assets/658ad14b-69db-4eee-9fb3-229784bd0e9d" />
+<img width="1920" height="1504" alt="image" src="https://github.com/user-attachments/assets/b6e4df37-9ddb-4709-a24a-a80f470ef769" />
 
 
 ### Formulaire d'ajout
-<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/2b7a3d3d-4fb3-43de-bc88-79946dc0659f" />
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/9716b7bf-87b1-4dba-a333-57181bf7f9d3" />
 
 ### Jeu ouvert
 <img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/bb20ddf4-308c-4cc9-9845-69d2d660b1ab" />
