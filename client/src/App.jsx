@@ -24,6 +24,7 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isFavoriteOpen, setIsFavoriteOpen] = useState(true);
   const [isOtherGamesOpen, setIsOtherGamesOpen] = useState(true);
+  const [stats, setStats] = useState([]);
 
   const styleInput =
     "border border-purple-300 focus:border-purple-500 rounded px-4 py-2 outline-none bg-white mt-3";
@@ -35,6 +36,12 @@ export default function App() {
   const styleSpan = "font-semibold text-purple-700";
   const styleIconArrow =
     "absolute text-purple-600 right-4 mt-[3px] cursor-pointer";
+
+  const styleStatsCards =
+    "bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col items-center justify-center";
+
+  const styleInfoStats =
+    "text-xs text-gray-500 mt-2 font-medium uppercase tracking-wide";
 
   const postGame = async (gameData) => {
     await fetch(serverUrl + "api/games", {
@@ -96,6 +103,7 @@ export default function App() {
 
   useEffect(() => {
     getGames();
+    getStatistics();
   }, []);
 
   const putGame = async (id, gameData) => {
@@ -111,6 +119,7 @@ export default function App() {
         else if (res.status == 200) {
           console.log("Jeu modifié avec succès !");
           getGames();
+          getGame(idGameToUpdate);
           setIdGameToUpdate(null);
           setErrorMessage("");
           return res.json();
@@ -207,6 +216,34 @@ export default function App() {
     await getGame(id);
   };
 
+  useEffect(() => {
+    getStatistics();
+  }, [games]);
+
+  const getStatistics = async () => {
+    await fetch(serverUrl + "api/stats/", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (res.status == 500) throw new Error();
+        else if (res.status == 200) {
+          return res.json();
+        }
+      })
+      .then((data) => {
+        setStats(data.message);
+        return data.message;
+      })
+      .catch((err) => {
+        console.log({
+          error: err + " Error while getting game. Please try later",
+        });
+      });
+  };
+
   return (
     <div className="flex flex-col min-h-screen p-6 rounded-lg bg-pink-50">
       <h1 className="text-4xl font-bold text-purple-800 text-center mt-2 mb-6">
@@ -214,19 +251,74 @@ export default function App() {
       </h1>
 
       <div className="bg-purple-50 border border-purple-300 rounded-lg p-4 mt-10 mb-6">
-        <p className="text-purple-800 mb-2">
-          Bienvenue dans votre bibliothèque de gestion de jeux vidéo !
-        </p>
-        <p className="text-purple-800 mb-2">
-          Ici, vous pouvez organiser, suivre et découvrir vos jeux vidéo
-          préférés.
-        </p>
-        <p className="text-purple-800 mb-2">
-          Commencez par ajouter vos jeux à la bibliothèque et profitez de
-          fonctionnalités telles que les favoris, le score et le filtrage.
-        </p>
+        {stats.length !== 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {/* Nb jeux */}
+            <div className={`${styleStatsCards}`}>
+              <span className="text-3xl font-bold text-pink-600">
+                {stats[0].nombreTotal}
+              </span>
+              <span className={`${styleInfoStats}`}>Nombre de jeux</span>
+            </div>
+
+            {/* Score moyen */}
+            <div className={`${styleStatsCards}`}>
+              <span className="text-3xl font-bold text-pink-600">
+                {stats[0].scoreMoyen}
+              </span>
+              <span className={`${styleInfoStats}`}>
+                Score moyen Metacritic
+              </span>
+            </div>
+
+            {/* Temps */}
+            <div className={`${styleStatsCards}`}>
+              <span className="text-3xl font-bold text-pink-600">
+                {stats[0].tempsTotal}
+              </span>
+              <span className={`${styleInfoStats}`}>
+                Nombre d'heures jouées
+              </span>
+            </div>
+
+            {/* Score max */}
+            <div className={`${styleStatsCards}`}>
+              <span className="text-3xl font-bold text-pink-600">
+                {stats[0].scoreMax}
+              </span>
+              <span className={`${styleInfoStats}`}>
+                Metacritic le plus haut
+              </span>
+            </div>
+
+            {/* Score min */}
+            <div className={`${styleStatsCards}`}>
+              <span className="text-3xl font-bold text-pink-600">
+                {stats[0].scoreMin}
+              </span>
+              <span className={`${styleInfoStats}`}>
+                Metacritic le plus bas
+              </span>
+            </div>
+          </div>
+        ) : (
+          <>
+            <p className="text-purple-800 mb-2">
+              Bienvenue dans votre bibliothèque de gestion de jeux vidéo !
+            </p>
+            <p className="text-purple-800 mb-2">
+              Ici, vous pouvez organiser, suivre et découvrir vos jeux vidéo
+              préférés.
+            </p>
+            <p className="text-purple-800 mb-2">
+              Commencez par ajouter vos jeux à la bibliothèque et profitez de
+              fonctionnalités telles que les favoris, le score et le filtrage.
+            </p>
+          </>
+        )}
       </div>
 
+      {/* AddGame */}
       <div
         className={`fixed inset-0 bg-pink-100/75 flex items-center justify-center z-99 ${
           addGame ? "" : "hidden"
@@ -246,6 +338,7 @@ export default function App() {
         </div>
       </div>
 
+      {/* Liste */}
       <div>
         <div className="flex w-full justify-between">
           <h3 className="text-2xl font-bold text-purple-500 mb-6">
@@ -340,7 +433,10 @@ export default function App() {
                       </li>
                     ) : (
                       game._id === idGameToUpdate && (
-                        <div className="bg-purple-50 border-2 border-pink-300 rounded-lg px-2 pb-6 mb-4 shadow-md relative self-start">
+                        <div
+                          key={index}
+                          className="bg-purple-50 border-2 border-pink-300 rounded-lg px-2 pb-6 mb-4 shadow-md relative self-start"
+                        >
                           <Form
                             key={index}
                             styleInput={styleInputModify}
@@ -352,7 +448,7 @@ export default function App() {
                             idGameToUpdate={idGameToUpdate}
                             setIdGameToUpdate={setIdGameToUpdate}
                             put={putGame}
-                            games={games}
+                            games={gamesFavorite}
                           />
                         </div>
                       )
@@ -445,7 +541,10 @@ export default function App() {
                       </li>
                     ) : (
                       game._id === idGameToUpdate && (
-                        <div className="bg-purple-50 border-2 border-pink-300 rounded-lg px-2 pb-6 mb-4 shadow-md relative self-start">
+                        <div
+                          key={index}
+                          className="bg-purple-50 border-2 border-pink-300 rounded-lg px-2 pb-6 mb-4 shadow-md relative self-start"
+                        >
                           <Form
                             key={index}
                             styleInput={styleInputModify}

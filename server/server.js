@@ -3,6 +3,7 @@ import connectMongo from "./config/mongoDBConfig.js";
 import dotenv from "dotenv";
 import cors from "cors";
 import gameRoutes from "./routes/gameRoutes.js";
+import statisticsRoutes from "./routes/statisticsRoutes.js";
 
 dotenv.config({ path: ".env" });
 
@@ -20,6 +21,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/games", gameRoutes);
+app.use("/api/stats", statisticsRoutes);
 
 app.listen(port, (error) => {
   if (!error)
