@@ -389,7 +389,7 @@ export default function App() {
                   className={`${styleParagraph} text-sm mb-4`}
                   style={{ color: "oklch(59.2% 0.249 0.584)" }}
                 >
-                  Aucun jeu en favori
+                  Aucun autre jeu
                 </p>
               ) : (
                 <ul className="grid grid-cols-2 gap-6">
