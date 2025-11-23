@@ -10,6 +10,7 @@ import {
   RiDeleteBinLine,
   RiStarLine,
   RiStarFill,
+  RiFileDownloadLine,
 } from "@remixicon/react";
 import GameDisplay from "../components/gameDisplay.jsx";
 
@@ -35,7 +36,7 @@ export default function App() {
   const styleParagraph = "text-purple-800 mb-1";
   const styleSpan = "font-semibold text-purple-700";
   const styleIconArrow =
-    "absolute text-purple-600 right-4 mt-[3px] cursor-pointer";
+    "absolute text-purple-600 right-6 mt-[3px] cursor-pointer";
 
   const styleStatsCards =
     "bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col items-center justify-center";
@@ -204,8 +205,6 @@ export default function App() {
 
   const setFavorite = (id, state) => {
     const favoriteState = { favorite: !state };
-    console.log(favoriteState);
-
     putGame(id, favoriteState);
   };
 
@@ -242,6 +241,42 @@ export default function App() {
           error: err + " Error while getting game. Please try later",
         });
       });
+  };
+
+  const exportDatas = async () => {
+    await fetch(serverUrl + "api/games/export", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (res.status == 500) throw new Error();
+        else if (res.status == 200) {
+          return res.json();
+        }
+      })
+      .then((data) => {
+        exporterJSON(data.message);
+      })
+      .catch((err) => {
+        console.log({
+          error: err + " Error while exporting games. Please try later",
+        });
+      });
+  };
+
+  const exporterJSON = (donnees) => {
+    const dataStr = JSON.stringify(donnees, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "my-games.json";
+    link.click();
+
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -344,16 +379,22 @@ export default function App() {
           <h3 className="text-2xl font-bold text-purple-500 mb-6">
             Liste des Jeux
           </h3>
-          <RiAddLine
-            className="text-purple-600 w-8 h-8 mb-4 cursor-pointer"
-            onClick={() => setAddGame(!addGame)}
-          />
+          <div className="flex items-center">
+            <RiAddLine
+              className="text-purple-600 w-7 h-7 mb-4 cursor-pointer"
+              onClick={() => setAddGame(!addGame)}
+            />
+            <RiFileDownloadLine
+              className="text-purple-600 w-6 h-6 mb-4 cursor-pointer"
+              onClick={() => exportDatas()}
+            />
+          </div>
         </div>
 
         <div>
           <div className="flex items-center gap-4 mb-8 text-purple-900">
             <h4>Jeux Favoris ({gamesFavorite.length})</h4>
-            <hr className="h-0 w-[88%] mt-1" />
+            <hr className="h-0 w-[87%] mt-1" />
             {isFavoriteOpen ? (
               <RiArrowRightSLine
                 className={`${styleIconArrow} rotate-90`}
@@ -387,7 +428,7 @@ export default function App() {
                         className="bg-purple-50 border-2 border-pink-300 rounded-lg p-5 mb-4 shadow-md relative self-start"
                       >
                         <RiStarFill
-                          className="absolute text-purple-600 right-10 top-6.5 cursor-pointer"
+                          className="absolute text-purple-600 right-12 top-6.5 cursor-pointer"
                           onClick={() => setFavorite(game._id, game.favorite)}
                           size={18}
                         />
@@ -463,7 +504,7 @@ export default function App() {
         <div>
           <div className="flex items-center gap-4 mb-8 text-purple-900">
             <h4>Autres jeux ({games.length})</h4>
-            <hr className="h-0 w-[88.5%] mt-1" />
+            <hr className="h-0 w-[87.5%] mt-1" />
             {isOtherGamesOpen ? (
               <RiArrowRightSLine
                 className={`${styleIconArrow} rotate-90`}
@@ -496,7 +537,7 @@ export default function App() {
                         className="bg-purple-50 border-2 border-pink-300 rounded-lg p-5 mb-4 shadow-md relative self-start"
                       >
                         <RiStarLine
-                          className="absolute text-purple-600 right-10 top-6.5 cursor-pointer"
+                          className="absolute text-purple-600 right-12 top-6.5 cursor-pointer"
                           onClick={() => setFavorite(game._id, game.favorite)}
                           size={18}
                         />
