@@ -8,17 +8,21 @@ L’application utilise **Node.js, Express, MongoDB et Mongoose** pour le backen
 ---
 
 ### Page d'accueil
-<img width="1920" height="1785" alt="image" src="https://github.com/user-attachments/assets/763106a9-398e-448e-8b7f-f760182f00e2" />
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b14740bc-6ccb-4897-9a23-100bd2205c7a" />
-<img width="1920" height="1498" alt="image" src="https://github.com/user-attachments/assets/658ad14b-69db-4eee-9fb3-229784bd0e9d" />
-<img width="1920" height="1504" alt="image" src="https://github.com/user-attachments/assets/b6e4df37-9ddb-4709-a24a-a80f470ef769" />
+<img width="1920" height="1785" alt="image" src="https://github.com/user-attachments/assets/c9722865-14ea-4cc4-b57e-56a039e19c2a" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f2bee4d7-e3ab-42cc-ad7e-04e653bb24ea" />
+<img width="1920" height="1498" alt="image" src="https://github.com/user-attachments/assets/57743eff-84c6-4625-a915-b6e3bcf0b0bb" />
+<img width="1920" height="1504" alt="image" src="https://github.com/user-attachments/assets/b1528646-c66b-441e-ab4f-241a53828490" />
 
 
 ### Formulaire d'ajout
-<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/9716b7bf-87b1-4dba-a333-57181bf7f9d3" />
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/479c67b7-719a-4924-abe3-f5c57ea360e9" />
 
 ### Jeu ouvert
-<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/bb20ddf4-308c-4cc9-9845-69d2d660b1ab" />
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/dd17473e-f350-48b5-b4ac-5a20930053e9" />
 
 ### Modifier un jeu
-<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/6e05dc8c-4b2d-4042-b4f2-494fbd4d8c54" />
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/0df5f652-4c74-46d0-867e-93e83a26dd53" />
+
+### Résultat Export
+<img width="796" height="980" alt="image" src="https://github.com/user-attachments/assets/975a443f-c211-4107-89b9-f31d117f7d1b" />
+
