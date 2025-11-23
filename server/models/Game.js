@@ -53,6 +53,10 @@ const GameSchema = new mongoose.Schema({
     type: Date,
     required: [true],
   },
+  favorite: {
+    type: Boolean,
+    required: [true],
+  },
 });
 
 const Game = mongoose.model("Game", GameSchema);

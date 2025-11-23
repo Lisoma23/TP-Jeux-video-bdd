@@ -17,7 +17,7 @@ export default function Form({
   const formRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData.entries());
@@ -90,13 +90,14 @@ export default function Form({
         }
       });
 
-      put(objectData);
+      put(idGameToUpdate, objectData);
     } else {
       const objectData = Object.assign({}, ...gameData);
-      post(objectData);
-      formRef.current?.reset();
-      setTermine(false);
-      setErrorMessage("");
+      const result = await post(objectData);
+      if (result && result.success) {
+        formRef.current?.reset();
+        setTermine(false);
+      }
     }
   };
 

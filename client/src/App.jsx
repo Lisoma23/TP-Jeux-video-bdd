@@ -8,17 +8,22 @@ import {
   RiArrowRightSLine,
   RiPencilLine,
   RiDeleteBinLine,
+  RiStarLine,
+  RiStarFill,
 } from "@remixicon/react";
-import Paragraph from "../components/Paragraph.jsx";
+import GameDisplay from "../components/gameDisplay.jsx";
 
 export default function App() {
   const [termine, setTermine] = useState(false);
   const [games, setGames] = useState([]);
+  const [gamesFavorite, setGamesFavorite] = useState([]);
   const [idGameToUpdate, setIdGameToUpdate] = useState(null);
   const [idGameOpened, setIdGameOpened] = useState(null);
   const [currentGame, setCurrentGame] = useState(null);
   const [addGame, setAddGame] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isFavoriteOpen, setIsFavoriteOpen] = useState(true);
+  const [isOtherGamesOpen, setIsOtherGamesOpen] = useState(true);
 
   const styleInput =
     "border border-purple-300 focus:border-purple-500 rounded px-4 py-2 outline-none bg-white mt-3";
@@ -28,9 +33,11 @@ export default function App() {
 
   const styleParagraph = "text-purple-800 mb-1";
   const styleSpan = "font-semibold text-purple-700";
+  const styleIconArrow =
+    "absolute text-purple-600 right-4 mt-[3px] cursor-pointer";
 
   const postGame = async (gameData) => {
-    fetch(serverUrl + "api/games", {
+    await fetch(serverUrl + "api/games", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -38,8 +45,13 @@ export default function App() {
       body: JSON.stringify(gameData),
     })
       .then((res) => {
-        if (res.status == 500) throw new Error();
-        else if (res.status == 201) {
+        if (res.status === 409) {
+          setErrorMessage("Le jeu existe déjà");
+          return;
+        } else if (res.status === 500) {
+          setErrorMessage("Erreur lors de l'ajout");
+          return;
+        } else if (res.status === 201) {
           console.log("Jeu ajouté avec succès !");
           getGames();
           setAddGame(false);
@@ -47,13 +59,14 @@ export default function App() {
           return res.json();
         }
       })
-      .catch(() => {
-        setErrorMessage("Error while connecting. Please try later");
+      .catch((err) => {
+        console.error(err);
+        setErrorMessage("Erreur de connexion au serveur");
       });
   };
 
   const getGames = async () => {
-    fetch(serverUrl + "api/games", {
+    await fetch(serverUrl + "api/games", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -66,60 +79,75 @@ export default function App() {
         }
       })
       .then((data) => {
-        setGames(data.message);
+        const allGames = data.message;
+
+        const favorites = allGames.filter((game) => game.favorite === true);
+        const nonFavorites = allGames.filter((game) => !game.favorite);
+
+        setGames(nonFavorites);
+        setGamesFavorite(favorites);
+      })
+      .catch((err) => {
+        console.log({
+          error: err + " Error while fetching games. Please try later",
+        });
       });
-    // .catch(() => {
-    //   setErrorMessage("Error while connecting. Please try later");
-    // });
   };
 
   useEffect(() => {
     getGames();
   }, []);
 
-  const putGame = async (gameData) => {
-    fetch(serverUrl + "api/games/" + idGameToUpdate, {
+  const putGame = async (id, gameData) => {
+    await fetch(serverUrl + "api/games/" + id, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(gameData),
-    }).then((res) => {
-      if (res.status == 500) throw new Error();
-      else if (res.status == 200) {
-        console.log("Jeu modifié avec succès !");
-        getGames();
-        setIdGameToUpdate(null);
-        return res.json();
-      }
-    });
-    // .catch(() => {
-    //   setErrorMessage("Error while connecting. Please try later");
-    // });
+    })
+      .then((res) => {
+        if (res.status == 500) throw new Error();
+        else if (res.status == 200) {
+          console.log("Jeu modifié avec succès !");
+          getGames();
+          setIdGameToUpdate(null);
+          setErrorMessage("");
+          return res.json();
+        }
+      })
+      .catch((err) => {
+        console.log({
+          error: err + " Error while modifying game. Please try later",
+        });
+      });
   };
 
   const deleteGame = async (id) => {
-    fetch(serverUrl + "api/games/" + id, {
+    await fetch(serverUrl + "api/games/" + id, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
-    }).then((res) => {
-      if (res.status == 500) throw new Error();
-      else if (res.status == 200) {
-        console.log("Jeu supprimé avec succès !");
-        getGames();
-        return res.json();
-      }
-    });
-    // .catch(() => {
-    //   setErrorMessage("Error while connecting. Please try later");
-    // });
+    })
+      .then((res) => {
+        if (res.status == 500) throw new Error();
+        else if (res.status == 200) {
+          console.log("Jeu supprimé avec succès !");
+          getGames();
+          return res.json();
+        }
+      })
+      .catch((err) => {
+        console.log({
+          error: err + " Error while deleting game. Please try later",
+        });
+      });
   };
 
   const getGame = async (id) => {
     setIdGameOpened(id);
-    fetch(serverUrl + "api/games/" + id, {
+    await fetch(serverUrl + "api/games/" + id, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -134,10 +162,12 @@ export default function App() {
       .then((data) => {
         setCurrentGame(data.message);
         return data.message;
+      })
+      .catch((err) => {
+        console.log({
+          error: err + " Error while getting game. Please try later",
+        });
       });
-    // .catch(() => {
-    //   setErrorMessage("Error while connecting. Please try later");
-    // });
   };
 
   const openCloseGameDetails = (id) => {
@@ -162,6 +192,20 @@ export default function App() {
       document.body.style.overflow = "auto";
     };
   }, [addGame]);
+
+  const setFavorite = (id, state) => {
+    const favoriteState = { favorite: !state };
+    console.log(favoriteState);
+
+    putGame(id, favoriteState);
+  };
+
+  const openGameToUpdate = async (id) => {
+    setCurrentGame(null);
+    setIdGameOpened(null);
+    setIdGameToUpdate(id);
+    await getGame(id);
+  };
 
   return (
     <div className="flex flex-col min-h-screen p-6 rounded-lg bg-pink-50">
@@ -213,146 +257,217 @@ export default function App() {
           />
         </div>
 
-        <ul className="grid grid-cols-2 gap-6">
-          {games.map((game, index) =>
-            idGameToUpdate != game._id ? (
-              <li
-                key={index}
-                className="bg-purple-50 border-2 border-pink-300 rounded-lg p-5 mb-4 shadow-md relative self-start"
-              >
-                {idGameOpened === game._id ? (
-                  <RiArrowRightSLine
-                    className="absolute right-4 rotate-90"
-                    onClick={() => openCloseGameDetails(game._id)}
-                  />
-                ) : (
-                  <RiArrowRightSLine
-                    className="absolute right-4"
-                    onClick={() => openCloseGameDetails(game._id)}
-                  />
-                )}
-                <h4 className="text-xl font-bold text-pink-600 mb-2 w-[90%]">
-                  {game.titre}
-                </h4>
-                <Paragraph
-                  categorie={"Genre(s)"}
-                  text={game.genre.join(", ")}
-                  styleParagraph={styleParagraph}
-                  styleSpan={styleSpan}
-                />
-                <Paragraph
-                  categorie={"Plateforme(s)"}
-                  text={game.plateforme.join(", ")}
-                  styleParagraph={styleParagraph}
-                  styleSpan={styleSpan}
-                />
-                <Paragraph
-                  categorie={"Terminé"}
-                  text={game.termine ? "Oui" : "Non"}
-                  styleParagraph={styleParagraph}
-                  styleSpan={styleSpan}
-                />
-
-                {idGameOpened === game._id && currentGame && (
-                  <>
-                    <Paragraph
-                      categorie={"Éditeur"}
-                      text={currentGame.editeur || "N/A"}
-                      styleParagraph={styleParagraph}
-                      styleSpan={styleSpan}
-                    />
-                    <Paragraph
-                      categorie={"Développeur"}
-                      text={currentGame.developpeur || "N/A"}
-                      styleParagraph={styleParagraph}
-                      styleSpan={styleSpan}
-                    />
-                    <Paragraph
-                      categorie={"Année de sortie"}
-                      text={currentGame.annee_sortie || "N/A"}
-                      styleParagraph={styleParagraph}
-                      styleSpan={styleSpan}
-                    />
-                    <Paragraph
-                      categorie={"Score Metacritic"}
-                      text={
-                        currentGame.metacritic_score !== null
-                          ? currentGame.metacritic_score
-                          : "N/A"
-                      }
-                      styleParagraph={styleParagraph}
-                      styleSpan={styleSpan}
-                    />
-                    <Paragraph
-                      categorie={"Temps de jeu (heures)"}
-                      text={
-                        currentGame.temps_jeu_heures !== null
-                          ? currentGame.temps_jeu_heures
-                          : "N/A"
-                      }
-                      styleParagraph={styleParagraph}
-                      styleSpan={styleSpan}
-                    />
-                    <Paragraph
-                      categorie={"Date de création"}
-                      text={new Date(currentGame.date_ajout).toLocaleString(
-                        "fr-FR"
-                      )}
-                      styleParagraph={styleParagraph}
-                      styleSpan={styleSpan}
-                    />
-                    <Paragraph
-                      categorie={"Dernière modification"}
-                      text={new Date(
-                        currentGame.date_modification
-                      ).toLocaleString("fr-FR")}
-                      styleParagraph={styleParagraph}
-                      styleSpan={styleSpan}
-                    />
-                  </>
-                )}
-                <div className="flex gap-3 mt-4">
-                  <button
-                    className="group relative bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg transition-all hover:scale-110 cursor-pointer"
-                    onClick={() => setIdGameToUpdate(game._id)}
-                  >
-                    <RiPencilLine size={15} />
-                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      Modifier
-                    </span>
-                  </button>
-                  <button
-                    className="group relative bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-lg transition-all hover:scale-110 cursor-pointer"
-                    onClick={() => deleteGame(game._id)}
-                  >
-                    <RiDeleteBinLine size={15} />
-                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      Supprimer
-                    </span>
-                  </button>
-                </div>
-              </li>
+        <div>
+          <div className="flex items-center gap-4 mb-8 text-purple-900">
+            <h4>Jeux Favoris ({gamesFavorite.length})</h4>
+            <hr className="h-0 w-[88%] mt-1" />
+            {isFavoriteOpen ? (
+              <RiArrowRightSLine
+                className={`${styleIconArrow} rotate-90`}
+                style={{ color: "oklch(38.1% 0.176 304.987)" }}
+                onClick={() => setIsFavoriteOpen(!isFavoriteOpen)}
+              />
             ) : (
-              game._id === idGameToUpdate && (
-                <div className="bg-purple-50 border-2 border-pink-300 rounded-lg px-2 pb-6 mb-4 shadow-md relative self-start">
-                  <Form
-                    key={index}
-                    styleInput={styleInputModify}
-                    termine={termine}
-                    setTermine={setTermine}
-                    post={postGame}
-                    setAddGame={setAddGame}
-                    game={game}
-                    idGameToUpdate={idGameToUpdate}
-                    setIdGameToUpdate={setIdGameToUpdate}
-                    put={putGame}
-                    games={games}
-                  />
-                </div>
-              )
-            )
+              <RiArrowRightSLine
+                className={`${styleIconArrow}`}
+                style={{ color: "oklch(38.1% 0.176 304.987)" }}
+                onClick={() => setIsFavoriteOpen(!isFavoriteOpen)}
+              />
+            )}
+          </div>
+
+          {isFavoriteOpen && (
+            <>
+              {gamesFavorite.length === 0 ? (
+                <p
+                  className={`${styleParagraph} mb-8 text-sm`}
+                  style={{ color: "oklch(59.2% 0.249 0.584)" }}
+                >
+                  Aucun jeu en favori
+                </p>
+              ) : (
+                <ul className="grid grid-cols-2 gap-6 mb-5">
+                  {gamesFavorite.map((game, index) =>
+                    idGameToUpdate != game._id ? (
+                      <li
+                        key={index}
+                        className="bg-purple-50 border-2 border-pink-300 rounded-lg p-5 mb-4 shadow-md relative self-start"
+                      >
+                        <RiStarFill
+                          className="absolute text-purple-600 right-10 top-6.5 cursor-pointer"
+                          onClick={() => setFavorite(game._id, game.favorite)}
+                          size={18}
+                        />
+
+                        {idGameOpened === game._id ? (
+                          <RiArrowRightSLine
+                            className={`${styleIconArrow} rotate-90`}
+                            onClick={() => openCloseGameDetails(game._id)}
+                          />
+                        ) : (
+                          <RiArrowRightSLine
+                            className={`${styleIconArrow}`}
+                            onClick={() => openCloseGameDetails(game._id)}
+                          />
+                        )}
+                        <GameDisplay
+                          game={game}
+                          styleParagraph={styleParagraph}
+                          styleSpan={styleSpan}
+                          idGameOpened={idGameOpened}
+                          currentGame={currentGame}
+                        />
+                        <div className="flex gap-3 mt-4">
+                          <button
+                            className="group relative bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg transition-all hover:scale-110 cursor-pointer"
+                            onClick={() => openGameToUpdate(game._id)}
+                          >
+                            <RiPencilLine size={15} />
+                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                              Modifier
+                            </span>
+                          </button>
+                          <button
+                            className="group relative bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-lg transition-all hover:scale-110 cursor-pointer"
+                            onClick={() => deleteGame(game._id)}
+                          >
+                            <RiDeleteBinLine size={15} />
+                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                              Supprimer
+                            </span>
+                          </button>
+                        </div>
+                      </li>
+                    ) : (
+                      game._id === idGameToUpdate && (
+                        <div className="bg-purple-50 border-2 border-pink-300 rounded-lg px-2 pb-6 mb-4 shadow-md relative self-start">
+                          <Form
+                            key={index}
+                            styleInput={styleInputModify}
+                            termine={termine}
+                            setTermine={setTermine}
+                            post={postGame}
+                            setAddGame={setAddGame}
+                            game={currentGame || game}
+                            idGameToUpdate={idGameToUpdate}
+                            setIdGameToUpdate={setIdGameToUpdate}
+                            put={putGame}
+                            games={games}
+                          />
+                        </div>
+                      )
+                    )
+                  )}
+                </ul>
+              )}
+            </>
           )}
-        </ul>
+        </div>
+
+        <div>
+          <div className="flex items-center gap-4 mb-8 text-purple-900">
+            <h4>Autres jeux ({games.length})</h4>
+            <hr className="h-0 w-[88.5%] mt-1" />
+            {isOtherGamesOpen ? (
+              <RiArrowRightSLine
+                className={`${styleIconArrow} rotate-90`}
+                style={{ color: "oklch(38.1% 0.176 304.987)" }}
+                onClick={() => setIsOtherGamesOpen(!isOtherGamesOpen)}
+              />
+            ) : (
+              <RiArrowRightSLine
+                className={`${styleIconArrow}`}
+                style={{ color: "oklch(38.1% 0.176 304.987)" }}
+                onClick={() => setIsOtherGamesOpen(!isOtherGamesOpen)}
+              />
+            )}
+          </div>
+          {isOtherGamesOpen && (
+            <>
+              {games.length === 0 ? (
+                <p
+                  className={`${styleParagraph} text-sm mb-4`}
+                  style={{ color: "oklch(59.2% 0.249 0.584)" }}
+                >
+                  Aucun jeu en favori
+                </p>
+              ) : (
+                <ul className="grid grid-cols-2 gap-6">
+                  {games.map((game, index) =>
+                    idGameToUpdate != game._id ? (
+                      <li
+                        key={index}
+                        className="bg-purple-50 border-2 border-pink-300 rounded-lg p-5 mb-4 shadow-md relative self-start"
+                      >
+                        <RiStarLine
+                          className="absolute text-purple-600 right-10 top-6.5 cursor-pointer"
+                          onClick={() => setFavorite(game._id, game.favorite)}
+                          size={18}
+                        />
+                        {idGameOpened === game._id ? (
+                          <RiArrowRightSLine
+                            className={`${styleIconArrow} rotate-90`}
+                            onClick={() => openCloseGameDetails(game._id)}
+                          />
+                        ) : (
+                          <RiArrowRightSLine
+                            className={`${styleIconArrow}`}
+                            onClick={() => openCloseGameDetails(game._id)}
+                          />
+                        )}
+                        <GameDisplay
+                          game={game}
+                          styleParagraph={styleParagraph}
+                          styleSpan={styleSpan}
+                          idGameOpened={idGameOpened}
+                          currentGame={currentGame}
+                        />
+                        <div className="flex gap-3 mt-4">
+                          <button
+                            className="group relative bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg transition-all hover:scale-110 cursor-pointer"
+                            onClick={() => openGameToUpdate(game._id)}
+                          >
+                            <RiPencilLine size={15} />
+                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                              Modifier
+                            </span>
+                          </button>
+                          <button
+                            className="group relative bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-lg transition-all hover:scale-110 cursor-pointer"
+                            onClick={() => deleteGame(game._id)}
+                          >
+                            <RiDeleteBinLine size={15} />
+                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                              Supprimer
+                            </span>
+                          </button>
+                        </div>
+                      </li>
+                    ) : (
+                      game._id === idGameToUpdate && (
+                        <div className="bg-purple-50 border-2 border-pink-300 rounded-lg px-2 pb-6 mb-4 shadow-md relative self-start">
+                          <Form
+                            key={index}
+                            styleInput={styleInputModify}
+                            termine={termine}
+                            setTermine={setTermine}
+                            post={postGame}
+                            setAddGame={setAddGame}
+                            game={currentGame || game}
+                            idGameToUpdate={idGameToUpdate}
+                            setIdGameToUpdate={setIdGameToUpdate}
+                            put={putGame}
+                            games={games}
+                          />
+                        </div>
+                      )
+                    )
+                  )}
+                </ul>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

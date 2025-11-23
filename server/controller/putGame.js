@@ -5,7 +5,6 @@ export async function putGame(req, res) {
     const updates = req.body;
     const idGame = req.params.id;
 
-
     //s'assurer que c'est bien l'user qui modifie son contact
     const game = await Game.findById(idGame);
     if (!game) {

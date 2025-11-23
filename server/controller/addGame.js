@@ -15,6 +15,7 @@ export async function addGame(req, res) {
     } = req.body;
     const date_ajout = new Date().toISOString();
     const date_modification = new Date().toISOString();
+    const favorite = false;
 
     // Check for existing game with the same title
     try {
@@ -39,6 +40,7 @@ export async function addGame(req, res) {
       termine,
       date_ajout,
       date_modification,
+      favorite
     });
 
     try {
